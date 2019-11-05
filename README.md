@@ -12,3 +12,12 @@ Python 3.6+ is required
 ```Python
 pip install whaTFRecordsWriter
 ```
+
+# Example
+
+```python
+filename = 'test.tfrecords'
+my = wr.Writer(filename)
+my.addfeature('image', wr.encode_bytes, preporcessing=wr.load_image)
+my.write('test_data')
+```
