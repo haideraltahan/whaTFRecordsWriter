@@ -16,7 +16,6 @@ import os
 from setuptools import find_packages, setup
 
 DEPENDENCIES = [
-    'tensorflow',
     'numpy',
     'pillow'
 ]
@@ -29,7 +28,7 @@ with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
 
 setup(
     name="whaTFRecordsWriter",
-    version='0.0.1',
+    version='0.0.2',
     author="Haider Al-Tahan",
     author_email="haideraltahan@gmail.com",
     description="",
