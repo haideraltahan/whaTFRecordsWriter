@@ -1,42 +1,53 @@
 import os
 import tensorflow as tf
-from whaTFRecordsWriter.encoders import encode_bytes
+from whaTFRecordsWriter.preprocessing import load_raw_image
+from tqdm import tqdm
+from multiprocessing import Pool
+
 
 class Writer():
-    def __init__(self, filename='data.tfrecords'):
+    def __init__(self, filename='data.tfrecords', num_writers = 1, writes_per_tfrecords = 1000):
         if filename == '' or not isinstance(filename, str):
             raise ValueError('Invalid given filename: %s' % filename)
+        if not isinstance(num_writers, int) or num_writers < 1:
+            raise ValueError('Invalid given num_writers: %s' % num_writers)
+        if not isinstance(writes_per_tfrecords, int) or writes_per_tfrecords < 1:
+            raise ValueError('Invalid given num_writers: %s' % writes_per_tfrecords)
         self.filename = filename
-        self.encoding_features = {}
-        self.decoding_features = {}
-        self.preprocessing_feature = {}
+        self.writer = None
+        self.writes_per_tfrecords = writes_per_tfrecords
+        self.num_writes = 0
+        self.num_tfrecords = 0
 
-    def addfeature(self, label, feature, feature_len=tf.io.FixedLenFeature, feature_tf_type=tf.string, preporcessing=None):
-        if label == '' or not isinstance(label, str):
-            raise ValueError('Invalid given label: %s' % label)
-        if not isinstance(feature, type(encode_bytes)):
-            raise ValueError('Invalid given feature: %s' % feature)
-        if label in self.encoding_features:
-            raise ValueError('Label - %s - already exists' % label)
-        if label in self.encoding_features:
-            raise ValueError('Label - %s - already exists' % label)
-        self.encoding_features[label] = feature
-        self.preprocessing_feature[label] = preporcessing
-        self.decoding_features[label] = feature_len([], feature_tf_type)
+    def init_writer(self):
+        self.writer = tf.io.TFRecordWriter(self.filename)
 
-    def write(self, data_dir):
-        if data_dir == '' or not os.path.exists(data_dir):
-            raise ValueError('Invalid given directory: %s' % data_dir)
-        with tf.io.TFRecordWriter(self.filename) as writer:
-            for i in self.listdir_fullpath(data_dir):
-                new_features = self.encoding_features.copy()
-                for j in new_features.keys():
-                    data = i
-                    if self.preprocessing_feature[j] != None:
-                        data= self.preprocessing_feature[j](data)
-                    new_features[j] = self.encoding_features[j](data)
-                writer.write(tf.train.Example(features=tf.train.Features(feature=new_features)).SerializeToString())
+    def create_new_writer(self):
+        self.writer.close()
+        self.writer = tf.io.TFRecordWriter(self.filename.replace('.tfrecords', '_' + str(self.num_tfrecords) + '.tfrecords'))
+        self.num_writes = 0
+        self.num_tfrecords += 1
 
-    @staticmethod
-    def listdir_fullpath(d):
-        return [os.path.join(d, f) for f in os.listdir(d)]
+    def write(self, data):
+        if data == None:
+            raise ValueError('Invalid given data: %s' % type(data))
+        if self.writer == None:
+            self.init_writer()
+        self.num_writes += 1
+        if (self.num_writes - self.writes_per_tfrecords) == 1:
+            self.create_new_writer()
+        self.writer.write(tf.train.Example(
+            features=tf.train.Features(feature=data)).SerializeToString())
+
+
+def listdir_fullpath(d):
+    return [os.path.join(d, f) for f in os.listdir(d)]
+
+def write_images_folder(tfrecord_filename, folder, num_writers = 1, writes_per_tfrecords = 1000000):
+    if not isinstance(folder, str) or not os.path.exists(folder):
+        raise ValueError('Invalid given folder: %s' % folder)
+    if not isinstance(tfrecord_filename, str):
+        raise ValueError('Invalid given tfrecord_filename: %s' % tfrecord_filename)
+    my = Writer(tfrecord_filename, writes_per_tfrecords = writes_per_tfrecords)
+    for i in tqdm(listdir_fullpath(folder)):
+        my.write(load_raw_image(i, 'image'))

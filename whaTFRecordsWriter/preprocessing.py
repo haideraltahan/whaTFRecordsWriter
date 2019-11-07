@@ -1,6 +1,8 @@
 import tensorflow as tf
-def load_image(image_addr):
+from whaTFRecordsWriter.encoders import encode_bytes
+
+def load_raw_image(image_addr, name):
     file = open(image_addr, 'rb')
     image = file.read()
     file.close()
-    return tf.compat.as_bytes(image)
+    return {name: encode_bytes(tf.compat.as_bytes(image))}

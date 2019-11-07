@@ -14,6 +14,23 @@ pip install whaTFRecordsWriter
 
 # Example
 
+## Converting Images in one class with no labels
+
+```python
+# 'test.tfrecords' is what you want to name your tfrecords
+# 'test_data' is the file directory that has the following structure:
+# test_data: /
+#       [image_0001.jpg]
+#       [image_0002.jpg]
+#       [image_000x.jpg]
+#       ...
+# 'writes_per_tfrecords' is the number of images to save per tfrecord.
+import whaTFRecordsWriter as wr
+wr.write_images_folder('test.tfrecords', 'test_data', writes_per_tfrecords=10)
+```
+
+## Custom dataset
+
 To encode images to tfrecords, you can use this method:
 
 ```python
