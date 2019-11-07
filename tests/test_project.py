@@ -4,13 +4,15 @@
 import unittest
 import whaTFRecordsWriter as wr
 import tensorflow as tf
+import os
+from PIL import Image
 
 class UnitTests(unittest.TestCase):
     def test_creating_and_reading(self):
         wr.write_images_folder('test.tfrecords', 'test_data', writes_per_tfrecords=10)
 
-    def read_data(self):
-        raw_image_dataset = tf.data.TFRecordDataset('test.tfrecords')
+    def test_read_data(self):
+        raw_image_dataset = tf.data.TFRecordDataset(['test.tfrecords', 'test_0.tfrecords'])
 
         def _parse_image_function(example_proto):
             # Parse the input tf.Example proto using the dictionary above.
@@ -24,3 +26,11 @@ class UnitTests(unittest.TestCase):
             return img
 
         parsed_image_dataset = raw_image_dataset.map(_parse_image_function)
+        parsed_image_dataset= parsed_image_dataset.batch(3)
+        c = 0
+        if not os.path.exists('test_prod'):
+            os.mkdir('test_prod')
+        for image in parsed_image_dataset.take(100):
+            im = Image.fromarray(image.numpy(), 'RGB')
+            c += 1
+            im.save('./test_prod/test_%d.png' % c)

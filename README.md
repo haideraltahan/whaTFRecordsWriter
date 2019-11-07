@@ -45,6 +45,8 @@ Note: Make sure that the given directory when writing has all the images that yo
 To extract the images you can do this:
 
 ```python
+raw_image_dataset = tf.data.TFRecordDataset('test.tfrecords')
+
 def _parse_image_function(example_proto):
     # Parse the input tf.Example proto using the dictionary above.
     img = tf.io.parse_single_example(example_proto, {"image": tf.io.FixedLenFeature([], tf.string)})
@@ -57,4 +59,12 @@ def _parse_image_function(example_proto):
     return img
 
 parsed_image_dataset = raw_image_dataset.map(_parse_image_function)
+parsed_image_dataset= parsed_image_dataset.batch(3)
+c = 0
+if not os.path.exists('test_prod'):
+    os.mkdir('test_prod')
+for image in parsed_image_dataset.take(100):
+    im = Image.fromarray(image.numpy(), 'RGB')
+    c += 1
+    im.save('./test_prod/test_%d.png' % c)
 ```
