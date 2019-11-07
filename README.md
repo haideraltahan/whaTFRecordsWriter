@@ -14,7 +14,7 @@ pip install whaTFRecordsWriter
 
 # Example
 
-## Converting Images in one class with no labels
+## Converting Images with no labels to tfrecords
 
 ```python
 # 'test.tfrecords' is what you want to name your tfrecords

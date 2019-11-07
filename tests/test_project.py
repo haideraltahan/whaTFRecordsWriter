@@ -6,7 +6,7 @@ import whaTFRecordsWriter as wr
 
 class UnitTests(unittest.TestCase):
     def test_creating_and_reading(self):
-        wr.write_images_folder('test.tfrecords', 'test_data')
+        wr.write_images_folder('test.tfrecords', 'test_data', writes_per_tfrecords=10)
 
         # raw_image_dataset = tf.data.TFRecordDataset(filename)
         # def _parse_image_function(example_proto):
