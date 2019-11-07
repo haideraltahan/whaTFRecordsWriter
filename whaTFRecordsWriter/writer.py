@@ -2,8 +2,9 @@ import os
 import tensorflow as tf
 from whaTFRecordsWriter.preprocessing import load_raw_image
 from tqdm import tqdm
+import threading
 from multiprocessing import Pool
-
+import functools
 
 class Writer():
     def __init__(self, filename='data.tfrecords', num_writers = 1, writes_per_tfrecords = 1000):
@@ -43,11 +44,16 @@ class Writer():
 def listdir_fullpath(d):
     return [os.path.join(d, f) for f in os.listdir(d)]
 
-def write_images_folder(tfrecord_filename, folder, num_writers = 1, writes_per_tfrecords = 1000000):
+def write_images_folder(tfrecord_filename, folder, num_writers = 2, writes_per_tfrecords = 1000000):
     if not isinstance(folder, str) or not os.path.exists(folder):
         raise ValueError('Invalid given folder: %s' % folder)
     if not isinstance(tfrecord_filename, str):
         raise ValueError('Invalid given tfrecord_filename: %s' % tfrecord_filename)
     my = Writer(tfrecord_filename, writes_per_tfrecords = writes_per_tfrecords)
-    for i in tqdm(listdir_fullpath(folder)):
-        my.write(load_raw_image(i, 'image'))
+    def process(i, ma=None, l=None):
+        image = load_raw_image(i, 'image')
+        with l:
+            ma.write(image)
+    lock = threading.Lock()
+    pool = Pool(num_writers)
+    pool.map(functools.partial(process, ma=my, l =lock), listdir_fullpath(folder))

@@ -28,7 +28,7 @@ with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
 
 setup(
     name="whaTFRecordsWriter",
-    version='0.0.2',
+    version='0.0.3',
     author="Haider Al-Tahan",
     author_email="haideraltahan@gmail.com",
     description="",
