@@ -9,7 +9,7 @@ from PIL import Image
 
 class UnitTests(unittest.TestCase):
     def test_creating_and_reading(self):
-        wr.write_images_folder('test.tfrecords', 'test_data', writes_per_tfrecords=10)
+        wr.write_images_folder('test.tfrecords', 'test_data', writes_per_tfrecords=1000000)
 
     def test_read_data(self):
         raw_image_dataset = tf.data.TFRecordDataset(['test.tfrecords', 'test_0.tfrecords'])

@@ -45,25 +45,27 @@ Note: Make sure that the given directory when writing has all the images that yo
 To extract the images you can do this:
 
 ```python
-raw_image_dataset = tf.data.TFRecordDataset('test.tfrecords')
+# Load the dataset
+dataset = tf.data.TFRecordDataset('test.tfrecords')
 
 def _parse_image_function(example_proto):
     # Parse the input tf.Example proto using the dictionary above.
-    img = tf.io.parse_single_example(example_proto, {"image": tf.io.FixedLenFeature([], tf.string)})
+    img = tf.io.parse_single_example(example_proto, {
+        "image": tf.io.FixedLenFeature([], tf.string)})
     img = img['image']
-    img = tf.image.decode_jpeg(img, channels=3)
-    #   image = tf.image.resize_images(image, [224, 224])
-    #   image /= 255.0  # normalize to [0,1] range
-    # img = tf.cast(img, tf.float32)
-    # img = (img / 127.5) - 1 # normalized to [-1, 1]
-    return img
+    image = tf.image.decode_jpeg(img, channels=1)
+    image = tf.image.resize(image, [28, 28])
+    image = tf.cast(image, tf.float32)
+    image /= 255.0  # normalize to [0,1] range
+    image = (image / 127.5) - 1
+    return image
 
-parsed_image_dataset = raw_image_dataset.map(_parse_image_function)
-parsed_image_dataset= parsed_image_dataset.batch(3)
+dataset = dataset.map(_parse_image_function)
+dataset = dataset.repeat(2).batch(32)
 c = 0
 if not os.path.exists('test_prod'):
     os.mkdir('test_prod')
-for image in parsed_image_dataset.take(100):
+for image in dataset.take(100):
     im = Image.fromarray(image.numpy(), 'RGB')
     c += 1
     im.save('./test_prod/test_%d.png' % c)
